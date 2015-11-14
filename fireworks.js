@@ -11,9 +11,21 @@ window.onload = function() {
     var explosion = [];
     var fireworks = [];
 
+
+    function resizeCanvas(e) {
+        var nW = window.innerWidth;
+        var nH = window.innerHeight;
+
+        canvas.width = nW;
+        canvas.height = nH;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+
     function rad(deg) {
         return deg * Math.PI / 180;
     }
+
 
     //Fireworks {{
 
@@ -24,29 +36,44 @@ window.onload = function() {
         this.radius = 5;
 
         //Random number: Math.floor(Math.random() * (max - min + 1)) + min;
-        this.life = Math.floor(Math.random() * (200 - 100 + 1)) + 100;
+        //this.life = Math.floor(Math.random() * (900 - 500 + 1)) + 500;
+
+        this.life = Math.floor(Math.random() * ( ((3 * H) / 4) - (H / 2) + 1)) + (H / 2);
 
         this.velocity = 10;
-        this.angle = 300;
+        this.angle = Math.floor(Math.random() * (320 - 250 + 1)) + 250;
 
     }
 
     Firework.prototype.draw = function() {
 
+
         if(this.life <= 0) {
 
-            for(var i = 0; i < 10; i++) {
-                explosions.push(new Explosion(this.x, this.y));
+            var tx = this.x;
+            var ty = this.y;
+
+            fireworks.pop();
+
+
+            for(var i = 0; i < 20; i++) {
+                explosion.push(new Explosion(tx, ty));
             }
 
-            for(var i = 0; i < explosions.length; i++) {
-                var e = explosions[i];
-                e.draw();
-            }
+            var temp = setInterval(function() {
+                for(var i = 0; i < explosion.length; i++) {
+                    var e = explosion[i];
 
-            fireworks = [];
+                    e.draw();
+                }
+
+            }, 30);
+
+            fireworks.push(new Firework());
 
         }
+
+
 
         this.x += this.velocity * Math.cos(rad(this.angle));
         this.y += this.velocity * Math.sin(rad(this.angle));
@@ -71,22 +98,51 @@ window.onload = function() {
         this.w = 10;
         this.h = 10;
 
+        this.color = Math.floor(Math.random() * 360);
+
         this.radius = 5;
 
-        this.vx = -5 + Math.random() * 10;
-        this.vy = -15 + Math.random() * 10;
+        this.angle = Math.random() * Math.PI * 2;
+
+        //this.speed = 5;
+
+        /*
+        this.vx = this.speed * Math.cos(this.angle);
+        this.vy = this.speed * Math.sin(this.angle);
+        */
+
+        this.vx = -20 + Math.random() * 40;
+        this.vy = -20 + Math.random() * 40;//-20 + Math.abs(this.vx*(Math.random() * 20));
+
         this.gravity = 1;
     };
 
     Explosion.prototype.draw = function() {
+
         this.x += this.vx;
         this.y += this.vy;
         this.vy += this.gravity;
 
+        this.radius-= 0.1;
+
+        var color = explosion[explosion.length - 1].color;
+
+        /*
+        ctx.globalCompositeOperation = 'lighter';
+        var gradient = ctx.createRadialGradient(this.x, this.y, 0.1, this.x, this.y, this.radius);
+        gradient.addColorStop(0.1, "rgba(255,255,255,1)");
+        gradient.addColorStop(0.8, "hsla("+ color +", 100%, 50%, 1)");
+        gradient.addColorStop(1, "hsla("+ color +", 100%, 50%, 0.1)");
+
+        ctx.fillStyle = gradient;
+        */
+
         ctx.beginPath();
         ctx.fillStyle = "rgb(255, 255, 255)";
-        ctx.arc(this.x, this.y, this.radius, Math.PI * 2, false);
+        ctx.arc(this.x, this.y, 5, Math.PI * 2, false);
         ctx.fill();
+        ctx.closePath();
+
     };
 
     //}}
@@ -102,9 +158,11 @@ window.onload = function() {
             var f = fireworks[i];
 
             f.draw();
+
         }
+
     }
 
-    var interval = setInterval(draw, 30)
+    setInterval(draw, 30);
 
 };
