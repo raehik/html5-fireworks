@@ -8,9 +8,37 @@ window.onload = function() {
     canvas.width = W;
     canvas.height = H;
 
-    var explosion = [];
+    
     var fireworks = [];
+    
+    //requestAnimationFrame polyfill {{
+    
+    (function() {
+        var lastTime = 0;
+        var vendors = ['webkit', 'moz'];
+        for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+            window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+            window.cancelAnimationFrame =
+              window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+        }
 
+        if (!window.requestAnimationFrame)
+            window.requestAnimationFrame = function(callback, element) {
+                var currTime = new Date().getTime();
+                var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+                var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+                  timeToCall);
+                lastTime = currTime + timeToCall;
+                return id;
+            };
+
+        if (!window.cancelAnimationFrame)
+            window.cancelAnimationFrame = function(id) {
+                clearTimeout(id);
+            };
+    }());
+    
+    //}}
 
     function resizeCanvas(e) {
         var nW = window.innerWidth;
@@ -25,18 +53,28 @@ window.onload = function() {
     function rad(deg) {
         return deg * Math.PI / 180;
     }
+    
+    function pad(str, length, prefix) {
+        while (str.length < length) {
+            str = prefix + str;
+        }
+        
+        return str;
+    }
 
 
     //Fireworks {{
 
     function Firework() {
+        this.explosions = [];
         this.x = W / 2;
         this.y = H;
+        
+        this.numberOfParticles = 27;
 
-        this.radius = 5;
+        this.radius = 4;
 
         //Random number: Math.floor(Math.random() * (max - min + 1)) + min;
-        //this.life = Math.floor(Math.random() * (900 - 500 + 1)) + 500;
 
         this.life = Math.floor(Math.random() * ( ((3 * H) / 4) - (H / 2) + 1)) + (H / 2);
 
@@ -47,7 +85,7 @@ window.onload = function() {
 
     Firework.prototype.draw = function() {
 
-
+        
         if(this.life <= 0) {
 
             var tx = this.x;
@@ -56,23 +94,32 @@ window.onload = function() {
             fireworks.pop();
 
 
-            for(var i = 0; i < 20; i++) {
-                explosion.push(new Explosion(tx, ty));
+            for(var i = 0; i < 25; i++) {
+                this.explosions.push(new Explosion(tx, ty));
             }
+            
 
-            var temp = setInterval(function() {
-                for(var i = 0; i < explosion.length; i++) {
-                    var e = explosion[i];
+            var that = this;
+            
+            setInterval(function() {
+                for(var i = 0; i < that.explosions.length; i++) {
+                    var e = that.explosions[i];
 
                     e.draw();
                 }
 
             }, 30);
-
+            
+            /*
+            for(var i = 0; i < that.explosions.length; i++) {
+                var e = that.explosions[i];
+    
+                window.requestAnimationFrame(e.draw());
+            }
+            */
             fireworks.push(new Firework());
 
         }
-
 
 
         this.x += this.velocity * Math.cos(rad(this.angle));
@@ -85,6 +132,9 @@ window.onload = function() {
         ctx.fillStyle = "rgb(255, 255, 255)";
         ctx.arc(this.x, this.y, this.radius, Math.PI * 2, false);
         ctx.fill();
+        ctx.closePath();
+        
+        
     }
 
     //}}
@@ -94,13 +144,12 @@ window.onload = function() {
     function Explosion(x, y) {
         this.x = x;
         this.y = y;
-
         this.w = 10;
         this.h = 10;
 
-        this.color = Math.floor(Math.random() * 360);
+        this.color = Math.floor(Math.random() * 0xFFFFFF);
 
-        this.radius = 5;
+        this.radius = 4;
 
         this.angle = Math.random() * Math.PI * 2;
 
@@ -114,18 +163,16 @@ window.onload = function() {
         this.vx = -20 + Math.random() * 40;
         this.vy = -20 + Math.random() * 40;//-20 + Math.abs(this.vx*(Math.random() * 20));
 
-        this.gravity = 1;
+        this.gravity = 0.8;
+        
     };
 
     Explosion.prototype.draw = function() {
-
         this.x += this.vx;
         this.y += this.vy;
         this.vy += this.gravity;
-
+        
         this.radius-= 0.1;
-
-        var color = explosion[explosion.length - 1].color;
 
         /*
         ctx.globalCompositeOperation = 'lighter';
@@ -138,10 +185,11 @@ window.onload = function() {
         */
 
         ctx.beginPath();
-        ctx.fillStyle = "rgb(255, 255, 255)";
-        ctx.arc(this.x, this.y, 5, Math.PI * 2, false);
+        ctx.fillStyle = "#" + pad(this.color.toString(16), 6, "0");
+        ctx.arc(this.x, this.y, this.radius, Math.PI * 2, false);
         ctx.fill();
         ctx.closePath();
+        
 
     };
 
@@ -159,10 +207,10 @@ window.onload = function() {
 
             f.draw();
 
+            window.requestAnimationFrame(draw);
         }
-
     }
-
-    setInterval(draw, 30);
-
+    
+    window.requestAnimationFrame(draw);
+    
 };
