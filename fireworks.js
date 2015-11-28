@@ -8,11 +8,11 @@ window.onload = function() {
     canvas.width = W;
     canvas.height = H;
 
-    
+
     var fireworks = [];
-    
+
     //requestAnimationFrame polyfill {{
-    
+
     (function() {
         var lastTime = 0;
         var vendors = ['webkit', 'moz'];
@@ -37,7 +37,7 @@ window.onload = function() {
                 clearTimeout(id);
             };
     }());
-    
+
     //}}
 
     function resizeCanvas(e) {
@@ -53,12 +53,12 @@ window.onload = function() {
     function rad(deg) {
         return deg * Math.PI / 180;
     }
-    
+
     function pad(str, length, prefix) {
         while (str.length < length) {
             str = prefix + str;
         }
-        
+
         return str;
     }
 
@@ -69,10 +69,11 @@ window.onload = function() {
         this.explosions = [];
         this.x = W / 2;
         this.y = H;
-        
+
         this.numberOfParticles = 27;
 
         this.radius = 4;
+        this.color = "#" + (Math.random() * 0xffffff << 0).toString(16);
 
         //Random number: Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -85,7 +86,7 @@ window.onload = function() {
 
     Firework.prototype.draw = function() {
 
-        
+
         if(this.life <= 0) {
 
             var tx = this.x;
@@ -94,13 +95,13 @@ window.onload = function() {
             fireworks.pop();
 
 
-            for(var i = 0; i < 25; i++) {
+            for(var i = 0; i < 100; i++) {
                 this.explosions.push(new Explosion(tx, ty));
             }
-            
+
 
             var that = this;
-            
+
             setInterval(function() {
                 for(var i = 0; i < that.explosions.length; i++) {
                     var e = that.explosions[i];
@@ -109,11 +110,11 @@ window.onload = function() {
                 }
 
             }, 30);
-            
+
             /*
             for(var i = 0; i < that.explosions.length; i++) {
                 var e = that.explosions[i];
-    
+
                 window.requestAnimationFrame(e.draw());
             }
             */
@@ -129,12 +130,12 @@ window.onload = function() {
 
 
         ctx.beginPath();
-        ctx.fillStyle = "rgb(255, 255, 255)";
+        ctx.fillStyle = this.color;
         ctx.arc(this.x, this.y, this.radius, Math.PI * 2, false);
         ctx.fill();
         ctx.closePath();
-        
-        
+
+
     }
 
     //}}
@@ -148,48 +149,70 @@ window.onload = function() {
         this.h = 10;
 
         this.color = Math.floor(Math.random() * 0xFFFFFF);
+        this.hue = Math.floor(Math.random() * 360);
 
-        this.radius = 4;
+        this.alpha = 1;
+        this.fade = 0;
 
+        //this.shrink = Math.random() * 0.05 + 0.93;
+        this.shrink = 0.93;
+
+        this.radius = 10;
+
+        this.speed = Math.cos(Math.random() * Math.PI / 2) * 15;
         this.angle = Math.random() * Math.PI * 2;
+
+        this.resistance = 0.95;
 
         //this.speed = 5;
 
-        /*
+
         this.vx = this.speed * Math.cos(this.angle);
         this.vy = this.speed * Math.sin(this.angle);
-        */
 
+
+        /*
         this.vx = -20 + Math.random() * 40;
         this.vy = -20 + Math.random() * 40;//-20 + Math.abs(this.vx*(Math.random() * 20));
+        */
 
-        this.gravity = 0.8;
-        
+        this.gravity = 0.2;
+
     };
 
     Explosion.prototype.draw = function() {
+        this.vx *= this.resistance;
+        this.vy *= this.resistance;
+
+        this.vy += this.gravity;
+
         this.x += this.vx;
         this.y += this.vy;
-        this.vy += this.gravity;
-        
-        this.radius-= 0.1;
 
-        /*
+        this.radius *= this.shrink;
+        this.alpha -= this.fade;
+
+
+        ctx.save();
+
         ctx.globalCompositeOperation = 'lighter';
+
         var gradient = ctx.createRadialGradient(this.x, this.y, 0.1, this.x, this.y, this.radius);
-        gradient.addColorStop(0.1, "rgba(255,255,255,1)");
-        gradient.addColorStop(0.8, "hsla("+ color +", 100%, 50%, 1)");
-        gradient.addColorStop(1, "hsla("+ color +", 100%, 50%, 0.1)");
+        gradient.addColorStop(0.1, "rgba(255,255,255,"+ this.alpha +")");
+        gradient.addColorStop(0.8, "hsla("+ this.hue +", 100%, 50%, "+ this.alpha +")");
+        gradient.addColorStop(1, "hsla("+ this.hue +", 100%, 50%, 0.1)");
 
         ctx.fillStyle = gradient;
-        */
+
 
         ctx.beginPath();
-        ctx.fillStyle = "#" + pad(this.color.toString(16), 6, "0");
+        //ctx.fillStyle = "#" + pad(this.color.toString(16), 6, "0");
         ctx.arc(this.x, this.y, this.radius, Math.PI * 2, false);
-        ctx.fill();
         ctx.closePath();
-        
+        ctx.fill();
+
+        ctx.restore();
+
 
     };
 
@@ -206,11 +229,11 @@ window.onload = function() {
             var f = fireworks[i];
 
             f.draw();
-
-            window.requestAnimationFrame(draw);
         }
+
+        window.requestAnimationFrame(draw);
     }
-    
+
     window.requestAnimationFrame(draw);
-    
+
 };
