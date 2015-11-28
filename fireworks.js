@@ -111,13 +111,6 @@ window.onload = function() {
 
             }, 30);
 
-            /*
-            for(var i = 0; i < that.explosions.length; i++) {
-                var e = that.explosions[i];
-
-                window.requestAnimationFrame(e.draw());
-            }
-            */
             fireworks.push(new Firework());
 
         }
@@ -154,9 +147,7 @@ window.onload = function() {
         this.alpha = 1;
         this.fade = 0;
 
-        //this.shrink = Math.random() * 0.05 + 0.93;
         this.shrink = 0.93;
-
         this.radius = 10;
 
         this.speed = Math.cos(Math.random() * Math.PI / 2) * 15;
@@ -164,17 +155,10 @@ window.onload = function() {
 
         this.resistance = 0.95;
 
-        //this.speed = 5;
-
 
         this.vx = this.speed * Math.cos(this.angle);
         this.vy = this.speed * Math.sin(this.angle);
 
-
-        /*
-        this.vx = -20 + Math.random() * 40;
-        this.vy = -20 + Math.random() * 40;//-20 + Math.abs(this.vx*(Math.random() * 20));
-        */
 
         this.gravity = 0.2;
 
@@ -206,7 +190,6 @@ window.onload = function() {
 
 
         ctx.beginPath();
-        //ctx.fillStyle = "#" + pad(this.color.toString(16), 6, "0");
         ctx.arc(this.x, this.y, this.radius, Math.PI * 2, false);
         ctx.closePath();
         ctx.fill();
