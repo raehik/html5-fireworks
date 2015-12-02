@@ -1,5 +1,4 @@
 window.onload = function() {
-
     var canvas = document.getElementById("canvas");
     var ctx = canvas.getContext("2d");
 
@@ -10,6 +9,9 @@ window.onload = function() {
 
 
     var fireworks = [];
+    var numOfParticles = 100;
+    var explosionRefreshSpeed = 30;
+    var explosionMinimumRadius = 1;
 
     //requestAnimationFrame polyfill {{
 
@@ -53,7 +55,6 @@ window.onload = function() {
     function rad(deg) {
         return deg * Math.PI / 180;
     }
-
     function pad(str, length, prefix) {
         while (str.length < length) {
             str = prefix + str;
@@ -83,34 +84,20 @@ window.onload = function() {
     }
 
     Firework.prototype.draw = function() {
-
-
+        // life is over: explode
         if(this.life <= 0) {
+            console.log("life over");
 
             var tx = this.x;
             var ty = this.y;
 
             fireworks.pop();
 
-
-            for(var i = 0; i < 100; i++) {
-                this.explosions.push(new Explosion(tx, ty));
+            for(var i = 0; i < numOfParticles; i++) {
+                new Explosion(tx, ty);
             }
 
-
-            var that = this;
-
-            setInterval(function() {
-                for(var i = 0; i < that.explosions.length; i++) {
-                    var e = that.explosions[i];
-
-                    e.draw();
-                }
-
-            }, 30);
-
             fireworks.push(new Firework());
-
         }
 
 
@@ -125,13 +112,7 @@ window.onload = function() {
         ctx.arc(this.x, this.y, this.radius, Math.PI * 2, false);
         ctx.fill();
         ctx.closePath();
-
-
     }
-
-    //}}
-
-    //Explosion {{
 
     function Explosion(x, y) {
         this.x = x;
@@ -158,6 +139,17 @@ window.onload = function() {
 
 
         this.gravity = 0.2;
+
+        var self = this;
+        var drawing = setInterval(function() {
+            if (self.radius < explosionMinimumRadius) {
+                // stop drawing particle when it is small enough
+                console.log("stopping drawing particle");
+                clearInterval(drawing);
+            } else {
+                self.draw();
+            }
+        }, explosionRefreshSpeed);
 
     };
 
@@ -206,9 +198,8 @@ window.onload = function() {
         ctx.fillRect(0, 0, W, H);
 
         for(var i = 0; i < fireworks.length; i++) {
-            var f = fireworks[i];
-
-            f.draw();
+            //console.log("fireworks len: " + fireworks.length);
+            fireworks[i].draw()
         }
 
         window.requestAnimationFrame(draw);
